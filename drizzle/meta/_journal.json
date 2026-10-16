@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1789384305552,
+      "tag": "0000_hot_namorita",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791651300930,
+      "tag": "0001_loving_lady_vermin",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791750648959,
+      "tag": "0002_curved_doorman",
+      "breakpoints": true
+    }
+  ]
+}
