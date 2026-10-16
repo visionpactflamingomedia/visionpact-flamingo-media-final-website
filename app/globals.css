@@ -2985,6 +2985,3 @@ a.contact-item:hover,.contact-item:has(a:hover) { transform:translateY(-2px); bo
 .client-logo.platform-item { gap:14px; font-size:24px; font-weight:600; letter-spacing:-.03em; }
 .client-logo.platform-item > i { font-style:normal; font-size:.8em; color:var(--accent); }
 @media (max-width:760px) { .client-logo.platform-item { font-size:19px; } }
-.test-page { min-height:60vh; }
-.test-page .page-title { margin:28px 0 22px; font-size:clamp(44px,6vw,92px); line-height:1.02; }
-.test-page > p:not(.eyebrow) { font-size:16px; color:#b3aca6; }

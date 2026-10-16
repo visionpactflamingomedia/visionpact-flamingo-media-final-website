@@ -512,7 +512,6 @@ export default function SitePage({
     ["Process", "process"],
     ["Pricing", "pricing"],
     ["About", "studio"],
-    ["Test", "test"],
   ];
   return (
     <>
@@ -1276,15 +1275,6 @@ export default function SitePage({
                 </button>
               ))}
             </div>
-          </section>
-        )}
-        {view === "test" && (
-          <section className="section test-page" aria-labelledby="test-title">
-            <Eyebrow>Test</Eyebrow>
-            <h1 id="test-title" className="page-title">
-              Test page
-            </h1>
-            <p>This page is a placeholder. Its content will be added soon.</p>
           </section>
         )}
         {view === "not-found" && (
