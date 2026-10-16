@@ -7,6 +7,12 @@ import { sites } from "./build/sites-vite-plugin";
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
 
+// Deploys need a real D1 database. Set these as build variables on Cloudflare;
+// local dev and preview keep the placeholder, which Miniflare accepts.
+const D1_DATABASE_ID =
+  process.env.D1_DATABASE_ID?.trim() || SITE_CREATOR_PLACEHOLDER_DATABASE_ID;
+const D1_DATABASE_NAME = process.env.D1_DATABASE_NAME?.trim() || "site-creator-d1";
+
 const { d1, r2 } = hostingConfig;
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
@@ -20,8 +26,8 @@ const localBindingConfig = {
     ? [
         {
           binding: d1,
-          database_name: "site-creator-d1",
-          database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
+          database_name: D1_DATABASE_NAME,
+          database_id: D1_DATABASE_ID,
         },
       ]
     : [],
