@@ -13,20 +13,25 @@
  * Setup, once
  *  1. In this spreadsheet open Extensions > Apps Script. Replace everything in
  *     Code.gs with this file and press Save.
- *  2. Choose "setup" in the function list at the top and press Run. Allow
+ *  2. Project Settings (gear icon) > Script properties > Add script property.
+ *     Property: SHEETS_WEBHOOK_SECRET. Value: a long private code (30+ letters
+ *     and numbers). Press Save script properties.
+ *  3. Choose "setup" in the function list at the top and press Run. Allow
  *     access when Google asks (Advanced > Go to project, if it warns).
- *  3. Deploy > New deployment > Select type: Web app.
+ *  4. Deploy > New deployment > Select type: Web app.
  *     Execute as: Me. Who has access: Anyone. Press Deploy, then copy the
  *     Web app URL.
- *  4. Give the website two settings: SHEETS_WEBHOOK_URL (that URL) and
- *     SHEETS_WEBHOOK_SECRET (the SHARED_SECRET value below).
+ *  5. Give the website two settings: SHEETS_WEBHOOK_URL (that URL) and
+ *     SHEETS_WEBHOOK_SECRET (the same code as the script property).
  *
  * Keep the tab names and the column order of Service Requests and Feedback.
  */
 
 // Must match SHEETS_WEBHOOK_SECRET on the website. Anyone who knows this value
-// can add rows, so keep it private.
+// can add rows, so keep it private. The script property SHEETS_WEBHOOK_SECRET
+// is used when set; otherwise this value, unless it is still a placeholder.
 const SHARED_SECRET = 'PASTE_THE_SHEETS_WEBHOOK_SECRET_HERE';
+const SECRET_PROPERTY = 'SHEETS_WEBHOOK_SECRET';
 
 const TIME_ZONE = 'Asia/Kolkata';
 const TAB = {
@@ -678,15 +683,15 @@ const NOT_EXAMPLE = '"<>Example*"';
 function doPost(e) {
   if (!e || !e.postData || !e.postData.contents || e.postData.contents.length > 30000)
     return json_({ ok: false, error: 'Invalid request' });
-  if (!SHARED_SECRET || SHARED_SECRET.indexOf('PASTE_') === 0 || SHARED_SECRET.indexOf('__') === 0)
-    return json_({ ok: false, error: 'Connector not configured' });
+  const secret = sharedSecret_();
+  if (!secret) return json_({ ok: false, error: 'Connector not configured' });
   let body;
   try {
     body = JSON.parse(e.postData.contents);
   } catch (err) {
     return json_({ ok: false, error: 'Invalid JSON' });
   }
-  if (!body || body.secret !== SHARED_SECRET) return json_({ ok: false, error: 'Unauthorized' });
+  if (!body || body.secret !== secret) return json_({ ok: false, error: 'Unauthorized' });
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) return json_({ ok: false, error: 'Busy, please retry' });
   try {
@@ -704,9 +709,20 @@ function doPost(e) {
   }
 }
 
+// Script property first, then the constant above. Placeholders count as unset.
+function sharedSecret_() {
+  const fromProperty = PropertiesService.getScriptProperties().getProperty(SECRET_PROPERTY);
+  const value = String(fromProperty || SHARED_SECRET || '').trim();
+  return value && value.indexOf('PASTE_') !== 0 && value.indexOf('__') !== 0 ? value : '';
+}
+
 // Lets you open the web app URL in a browser to check the deployment.
 function doGet() {
-  return json_({ ok: true, connector: 'Visionpact Flamingo Media sheet' });
+  return json_({
+    ok: true,
+    connector: 'Visionpact Flamingo Media sheet',
+    secretConfigured: Boolean(sharedSecret_()),
+  });
 }
 
 function addRequest_(d, receivedAt) {
