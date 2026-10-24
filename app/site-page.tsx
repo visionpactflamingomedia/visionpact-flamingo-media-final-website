@@ -506,6 +506,15 @@ export default function SitePage({
               {name}
             </a>
           ))}
+          {/* Shown only where the "Let’s talk" button is hidden (≤1050px). */}
+          <a
+            className="nav-contact"
+            href="/contact"
+            aria-current={view === "contact" ? "page" : undefined}
+            onClick={() => setMenu(false)}
+          >
+            Contact
+          </a>
           <span className="nav-indicator" aria-hidden="true" />
         </nav>
         <a className="button nav-cta" href="/contact">
