@@ -800,7 +800,7 @@ function buildWebsite_(ss) {
     ['Phone 1', c.phones[0].label],
     ['Phone 2', c.phones[1].label],
     ['LinkedIn', c.linkedin],
-    ['Instagram', c.instagram + '  (demo link, replace with the real profile)'],
+    ['Instagram', c.instagram],
     ['Currency', 'Indian rupee (INR, ₹)'],
     ['Area served', 'India'],
   ];

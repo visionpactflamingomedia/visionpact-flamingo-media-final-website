@@ -98,7 +98,7 @@ Subjective page ratings: Home 9.2/10; Services 9.2/10; Work 8.5/10; Process 9.0/
 
 - Every contact-form and feedback submission is saved to the database, copied to the Google Sheet, and emailed by the sheet's Apps Script (Gmail, `MailApp`) to `visionpactflamingomedia@gmail.com`, or to the `NOTIFY_EMAIL` script property when set. The email includes every form field and the reference; Reply goes to the visitor. Emails therefore need the Google Sheet connection below; FormSubmit is no longer used.
 - After pasting a new `Code.gs`, run `testEmail` once in Apps Script to allow sending email, then publish a new version of the web app (Deploy > Manage deployments > Edit > New version).
-- Contact details (email, phones, LinkedIn, Instagram) live in `contact` in `app/content.ts`. LinkedIn points to the studio's real profile (https://www.linkedin.com/in/visionpact-flamingo-media-3a99b1440/) and is listed as `sameAs` in the structured data; the Instagram URL is still a demo link, so replace it with the real profile.
+- Contact details (email, phones, LinkedIn, Instagram) live in `contact` in `app/content.ts`. LinkedIn points to the studio's real profile (https://www.linkedin.com/in/visionpact-flamingo-media-3a99b1440/) and Instagram to https://www.instagram.com/visionpact.digital; both are listed as `sameAs` in the structured data.
 
 ## October 10: audit, security, SEO and new sections
 
@@ -133,7 +133,7 @@ Subjective page ratings: Home 9.2/10; Services 9.2/10; Work 8.5/10; Process 9.0/
 - Build settings for the live site:
   - `NEXT_PUBLIC_SITE_URL=https://your-domain` (canonical links, share image, breadcrumbs, logo URL).
   - `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=<code>` (optional; the content value from Google Search Console's HTML-tag method).
-- After launch: verify the site in Google Search Console and Bing Webmaster Tools, submit `/sitemap.xml`, create a Google Business Profile with the same name, phone and email, replace the demo Instagram link, and collect genuine reviews. Adding your city to the copy and Business Profile helps local searches ("branding agency in <city>").
+- After launch: verify the site in Google Search Console and Bing Webmaster Tools, submit `/sitemap.xml`, create a Google Business Profile with the same name, phone and email, and collect genuine reviews. Adding your city to the copy and Business Profile helps local searches ("branding agency in <city>").
 
 **Google Sheet: requests, feedback and clients**
 - Every service request and feedback submission is also copied to the studio's Google Sheet ("Visionpact Flamingo Media Business Data" in Drive). The API routes save to the database first, then `lib/sheets.ts` posts the row to the sheet's Apps Script web app in the background (`after()`), so a slow or unavailable sheet never delays or breaks a form. Retried submissions are never copied twice.

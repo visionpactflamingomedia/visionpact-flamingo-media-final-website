@@ -64,8 +64,8 @@ const allOffers = services.flatMap((s) => s.offers);
 const prices = allOffers.map(([, price]) => price);
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
-// Business details (all confirmed by the owner). sameAs lists the real LinkedIn
-// profile; the Instagram URL is still a demo link, so it is left out.
+// Business details (all confirmed by the owner). sameAs lists the studio's real
+// LinkedIn and Instagram profiles.
 export const organizationJsonLd = {
   "@context": "https://schema.org",
   "@graph": [
@@ -82,7 +82,7 @@ export const organizationJsonLd = {
       currenciesAccepted: "INR",
       priceRange: `${inr(Math.min(...prices))} – ${inr(Math.max(...prices))}`,
       knowsAbout: services.map((s) => s.name),
-      sameAs: [contact.linkedin],
+      sameAs: [contact.linkedin, contact.instagram],
       ...(siteUrl && {
         logo: `${siteUrl}/images/visionpact-logo.webp`,
         image: `${siteUrl}/images/og-image.jpg`,

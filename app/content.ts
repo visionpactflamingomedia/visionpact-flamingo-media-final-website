@@ -751,8 +751,7 @@ export function priceForSelection(selection: string) {
   return best;
 }
 // Studio contact details, used on the contact page, in the footer and for
-// inquiry emails. The LinkedIn URL is the studio's real profile; the Instagram
-// URL is still a demo link: replace it with the real profile address.
+// inquiry emails. The LinkedIn and Instagram URLs are the studio's real profiles.
 export const contact = {
   email: "visionpactflamingomedia@gmail.com",
   phones: [
@@ -760,7 +759,7 @@ export const contact = {
     { label: "+91 96361 70333", href: "tel:+919636170333" },
   ],
   linkedin: "https://www.linkedin.com/in/visionpact-flamingo-media-3a99b1440/",
-  instagram: "https://www.instagram.com/visionpactflamingomedia",
+  instagram: "https://www.instagram.com/visionpact.digital",
 };
 // Brands shown in the "Trusted by" logo strips. Edit this list to match the
 // companies you have worked with; each name needs a matching logo in

@@ -82,7 +82,7 @@ const DATA = {
    }
   ],
   "linkedin": "https://www.linkedin.com/in/visionpact-flamingo-media-3a99b1440/",
-  "instagram": "https://www.instagram.com/visionpactflamingomedia"
+  "instagram": "https://www.instagram.com/visionpact.digital"
  },
  "services": [
   {
@@ -1345,7 +1345,7 @@ function buildWebsite_(ss) {
     ['Phone 1', c.phones[0].label],
     ['Phone 2', c.phones[1].label],
     ['LinkedIn', c.linkedin],
-    ['Instagram', c.instagram + '  (demo link, replace with the real profile)'],
+    ['Instagram', c.instagram],
     ['Currency', 'Indian rupee (INR, ₹)'],
     ['Area served', 'India'],
   ];
