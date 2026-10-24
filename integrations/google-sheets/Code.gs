@@ -527,7 +527,7 @@ const DATA = {
    "Home",
    "/",
    "First impression, services overview, trusted-by logos",
-   "Branding, Website Design & Digital Marketing Agency in India | Visionpact Flamingo Media",
+   "Visionpact Flamingo Media | Branding, Website Design & Digital Marketing Agency in India",
    "creative agency, brand identity design, website development company, AI content creation",
    "Yes"
   ],

@@ -90,8 +90,14 @@ export const organizationJsonLd = {
     },
     {
       "@type": "WebSite",
-      ...(siteUrl && { "@id": `${siteUrl}/#website`, url: siteUrl }),
+      ...(siteUrl && {
+        "@id": `${siteUrl}/#website`,
+        url: siteUrl,
+        publisher: { "@id": `${siteUrl}/#organization` },
+      }),
       name: SITE_NAME,
+      // Google shows this as the site name above search results.
+      alternateName: "Visionpact",
       inLanguage: "en-IN",
     },
   ],
