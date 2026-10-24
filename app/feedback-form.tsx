@@ -1,8 +1,7 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowUpRight, Check, Star } from "lucide-react";
 import { services } from "./content";
-import { sendFeedbackEmail } from "./inquiry-email";
 import { newRequestId } from "./request-id";
 
 const RATING_LABELS = ["", "Poor", "Fair", "Good", "Very good", "Excellent"];
@@ -16,10 +15,6 @@ export function FeedbackForm({ onPrivacy }: { onPrivacy: () => void }) {
     null,
   );
   const requestId = useRef("");
-  const shownAt = useRef(0);
-  useEffect(() => {
-    shownAt.current = Date.now();
-  }, []);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,46 +24,22 @@ export function FeedbackForm({ onPrivacy }: { onPrivacy: () => void }) {
     setStatus(null);
     requestId.current ||= newRequestId();
     const reference = requestId.current.slice(0, 8).toUpperCase();
-    // Bots fill the hidden field or submit within moments of the page loading.
-    const looksAutomated =
-      Boolean(v.website) || Date.now() - shownAt.current < 2000;
     try {
-      // Save first so the server's rate limit also stops email spam.
-      let saveError: unknown = null;
-      try {
-        const res = await fetch("/api/feedback", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...v, id: requestId.current }),
-        });
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        if (res.status === 429)
-          throw new Error(data.error || "Too much feedback. Please wait a few minutes.");
-        if (!res.ok)
-          saveError = new Error(
-            data.error || "Unable to send your feedback. Please try again.",
-          );
-      } catch (err) {
-        if (err instanceof Error && !(err instanceof TypeError)) throw err;
-        saveError = err; // network failure: still try the email
-      }
-      let mailError: unknown = looksAutomated
-        ? new Error("Spam check failed.")
-        : null;
-      if (!mailError)
-        await sendFeedbackEmail({
-          reference,
-          name: v.name,
-          email: v.email,
-          service: v.service,
-          rating: Number(v.rating),
-          message: v.message,
-          allowQuote: v.allowQuote === "yes",
-        }).catch((err: unknown) => {
-          mailError = err;
-          console.warn("Feedback email not sent:", err);
-        });
-      if (saveError && mailError) throw saveError;
+      // The server saves the feedback and passes it to the studio's Google
+      // Sheet, which emails the studio inbox.
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...v, id: requestId.current }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok)
+        throw new Error(
+          data.error ||
+            (res.status === 429
+              ? "Too much feedback. Please wait a few minutes."
+              : "Unable to send your feedback. Please try again."),
+        );
       setStatus({
         ok: true,
         text: `Thank you, ${v.name.split(" ")[0]}! Your feedback has been sent. Reference: ${reference}.`,

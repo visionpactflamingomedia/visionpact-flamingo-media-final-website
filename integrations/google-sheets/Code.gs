@@ -5,8 +5,9 @@
  *  - setup() builds every tab of this spreadsheet: Dashboard, Service Requests,
  *    Feedback, Clients, Client Types, Services & Pricing, Website, How to use
  *    and Lists. Running it again rebuilds the layout and keeps every row.
- *  - doPost() receives the website's service-request and feedback forms and
- *    adds each submission as a new row.
+ *  - doPost() receives the website's service-request and feedback forms, adds
+ *    each submission as a new row and emails it to the studio inbox (the
+ *    NOTIFY_EMAIL script property, or the website's contact email).
  *  - onEdit() copies a request to Clients when its Status is set to Confirmed,
  *    and gives new client rows an ID.
  *
@@ -17,7 +18,9 @@
  *     Property: SHEETS_WEBHOOK_SECRET. Value: a long private code (30+ letters
  *     and numbers). Press Save script properties.
  *  3. Choose "setup" in the function list at the top and press Run. Allow
- *     access when Google asks (Advanced > Go to project, if it warns).
+ *     access when Google asks (Advanced > Go to project, if it warns). Then
+ *     run "testEmail" once: it allows the script to send email and sends a
+ *     test message to the studio inbox.
  *  4. Deploy > New deployment > Select type: Web app.
  *     Execute as: Me. Who has access: Anyone. Press Deploy, then copy the
  *     Web app URL.
@@ -32,6 +35,8 @@
 // is used when set; otherwise this value, unless it is still a placeholder.
 const SHARED_SECRET = 'PASTE_THE_SHEETS_WEBHOOK_SECRET_HERE';
 const SECRET_PROPERTY = 'SHEETS_WEBHOOK_SECRET';
+// Optional script property: where new requests and feedback are emailed.
+const NOTIFY_PROPERTY = 'NOTIFY_EMAIL';
 
 const TIME_ZONE = 'Asia/Kolkata';
 const TAB = {
@@ -730,6 +735,7 @@ function addRequest_(d, receivedAt) {
   const reference = text_(d.reference, 20);
   if (!reference) throw new Error('Missing reference');
   if (hasValue_(sheet, 2, reference)) return 'duplicate';
+  const price = number_(d.packagePrice);
   appendRow_(sheet, [
     date_(receivedAt),
     reference,
@@ -740,13 +746,26 @@ function addRequest_(d, receivedAt) {
     text_(d.type, 40),
     text_(d.service, 160),
     text_(d.selectedPackage, 300),
-    number_(d.packagePrice),
+    price,
     text_(d.message, 4000),
     text_(d.page, 200),
     'New',
     '',
     '',
     '',
+  ]);
+  notify_('New website inquiry: ' + plain_(d.service, 80) + ' | ' + plain_(d.name, 100), plain_(d.email, 254), [
+    ['Reference', reference],
+    ['Name', plain_(d.name, 100)],
+    ['Email', plain_(d.email, 254)],
+    ['Phone', plain_(d.phone, 20) || 'Not given'],
+    ['Company / brand', plain_(d.company, 160) || 'Not given'],
+    ['Inquiry type', plain_(d.type, 40)],
+    ['Service', plain_(d.service, 160)],
+    ['Selected package', plain_(d.selectedPackage, 300) || 'None'],
+    ['Package price', price === '' ? 'None' : '₹' + Number(price).toLocaleString('en-IN')],
+    ['Message', plain_(d.message, 4000)],
+    ['Page', plain_(d.page, 200)],
   ]);
   return 'added';
 }
@@ -772,7 +791,74 @@ function addFeedback_(d, receivedAt) {
     'No',
     '',
   ]);
+  notify_('New client feedback: ' + rating + '/5 | ' + plain_(d.name, 100), plain_(d.email, 254), [
+    ['Reference', reference],
+    ['Name', plain_(d.name, 100)],
+    ['Email', plain_(d.email, 254) || 'Not given'],
+    ['Service used', plain_(d.service, 160) || 'Not specified'],
+    ['Rating', '★'.repeat(rating) + '☆'.repeat(5 - rating) + ' (' + rating + '/5)'],
+    ['Feedback', plain_(d.message, 2000)],
+    ['May we quote this?', d.allowQuote === true ? 'Yes, first name only' : 'No'],
+    ['Page', plain_(d.page, 200)],
+  ]);
   return 'added';
+}
+
+// ---- Email notifications ---------------------------------------------------
+
+function notifyAddress_() {
+  const fromProperty = PropertiesService.getScriptProperties().getProperty(NOTIFY_PROPERTY);
+  return String(fromProperty || DATA.contact.email || '').trim();
+}
+
+// Emails one submission as a two-column table. A failed email is logged and
+// never stops the row from being saved.
+function notify_(subject, replyTo, rows) {
+  const to = notifyAddress_();
+  if (!to) return;
+  try {
+    const html =
+      '<table cellpadding="8" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px">' +
+      rows.map((r) =>
+        '<tr><td style="border:1px solid #e3d9cf;background:#fff8ef;font-weight:bold;vertical-align:top">' + html_(r[0]) +
+        '</td><td style="border:1px solid #e3d9cf;white-space:pre-wrap">' + html_(r[1]) + '</td></tr>',
+      ).join('') +
+      '</table><p style="font-family:Arial,sans-serif;font-size:12px;color:#5f5954">Also added to ' +
+      html_(SpreadsheetApp.getActive().getName()) + '. Reply to this email to answer the sender.</p>';
+    const options = {
+      to: to,
+      subject: subject.slice(0, 200),
+      htmlBody: html,
+      body: rows.map((r) => r[0] + ': ' + r[1]).join('\n'),
+      name: 'Visionpact website',
+    };
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(replyTo)) options.replyTo = replyTo;
+    MailApp.sendEmail(options);
+  } catch (err) {
+    console.error('Notification email failed: ' + ((err && err.message) || err));
+  }
+}
+
+// Run once from the editor: grants the email permission and sends a test.
+function testEmail() {
+  const to = notifyAddress_();
+  if (!to) throw new Error('Set the NOTIFY_EMAIL script property first.');
+  MailApp.sendEmail(to, 'Visionpact website: test email', 'Emails from the website forms will arrive at this address.');
+  return 'Test email sent to ' + to + '. Daily emails left: ' + MailApp.getRemainingDailyQuota();
+}
+
+// Text for emails: control characters removed and length capped.
+function plain_(value, max) {
+  const s = value === null || value === undefined ? '' : String(value);
+  return s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim().slice(0, max);
+}
+
+function html_(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // The log tabs are created on first use if setup() has not been run.

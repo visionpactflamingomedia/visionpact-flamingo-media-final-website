@@ -96,9 +96,8 @@ Subjective page ratings: Home 9.2/10; Services 9.2/10; Work 8.5/10; Process 9.0/
 
 ## Inquiry emails and contact details
 
-- Every contact-form submission is saved to the database **and** emailed to `visionpactflamingomedia@gmail.com` through FormSubmit (`app/inquiry-email.ts`). It counts as sent if either succeeds. The email includes name, email, phone, company, chosen service, any package picked on the Pricing page, the message and a reference; Reply goes to the visitor.
-- **One-time activation:** after the first real submission, FormSubmit sends an "Activate Form" email to the inbox. Click it once; emails only arrive after that. Check Spam/Promotions if it is missing. Once the site is live on its own domain, submit once from there too.
-- FormSubmit's activation email also offers a random alias address; you can paste it in place of the email inside `app/inquiry-email.ts` so the real address is not in the form request.
+- Every contact-form and feedback submission is saved to the database, copied to the Google Sheet, and emailed by the sheet's Apps Script (Gmail, `MailApp`) to `visionpactflamingomedia@gmail.com`, or to the `NOTIFY_EMAIL` script property when set. The email includes every form field and the reference; Reply goes to the visitor. Emails therefore need the Google Sheet connection below; FormSubmit is no longer used.
+- After pasting a new `Code.gs`, run `testEmail` once in Apps Script to allow sending email, then publish a new version of the web app (Deploy > Manage deployments > Edit > New version).
 - Contact details (email, phones, LinkedIn, Instagram) live in `contact` in `app/content.ts`. LinkedIn points to the studio's real profile (https://www.linkedin.com/in/visionpact-flamingo-media-3a99b1440/) and is listed as `sameAs` in the structured data; the Instagram URL is still a demo link, so replace it with the real profile.
 
 ## October 10: audit, security, SEO and new sections

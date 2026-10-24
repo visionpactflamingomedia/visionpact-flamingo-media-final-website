@@ -2,14 +2,14 @@ import type { NextConfig } from "next";
 
 // Content Security Policy for production. 'unsafe-inline' is needed for the
 // framework's inline hydration scripts and React style props; everything else
-// is limited to this site, plus FormSubmit for inquiry emails.
+// is limited to this site.
 const contentSecurityPolicy = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  "connect-src 'self' https://formsubmit.co",
+  "connect-src 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",

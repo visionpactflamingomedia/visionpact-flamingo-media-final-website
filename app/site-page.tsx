@@ -51,7 +51,6 @@ import { WebsitePricing } from "./website-pricing";
 import { ClientMarquee, PlatformMarquee } from "./client-logos";
 import { ConceptVisual } from "./concept-visuals";
 import { ContactList, SocialLinks } from "./contact-details";
-import { sendInquiryEmail } from "./inquiry-email";
 import { newRequestId } from "./request-id";
 import { FeedbackForm } from "./feedback-form";
 import { usePageNavigation } from "./page-transitions";
@@ -310,10 +309,6 @@ export default function SitePage({
   const service = serviceChoice ?? serviceForOffer(selectedOffer);
   const dialog = useRef<HTMLDialogElement>(null);
   const requestId = useRef<string>("");
-  const formShownAt = useRef(0);
-  useEffect(() => {
-    formShownAt.current = Date.now();
-  }, []);
   useEffect(() => {
     if (!menu) return;
     // Escape closes the mobile menu and returns focus to its toggle button.
@@ -437,54 +432,26 @@ export default function SitePage({
     const values = Object.fromEntries(new FormData(f)) as Record<string, string>;
     requestId.current ||= newRequestId();
     const reference = requestId.current.slice(0, 8).toUpperCase();
-    // Bots fill the hidden "website" field or submit within moments of the
-    // page loading; never email those.
-    const looksAutomated =
-      Boolean(values.website) || Date.now() - formShownAt.current < 2000;
     try {
-      // Save first, so the server's rate limit also stops email spam. The
-      // inquiry counts as sent if either the save or the email succeeds.
-      let saveError: unknown = null;
-      try {
-        const res = await fetch("/api/inquiries", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...values,
-            selectedPackage: selectedOffer,
-            id: requestId.current,
-          }),
-        });
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        if (res.status === 429)
-          throw new Error(data.error || "Too many inquiries. Please wait a few minutes.");
-        if (!res.ok)
-          saveError = new Error(
-            data.error || "Unable to send your inquiry. Please try again.",
-          );
-      } catch (err) {
-        if (err instanceof Error && !(err instanceof TypeError)) throw err;
-        saveError = err; // network failure: still try the email
-      }
-      let mailError: unknown = looksAutomated
-        ? new Error("Spam check failed.")
-        : null;
-      if (!mailError)
-        await sendInquiryEmail({
-          reference,
-          name: values.name,
-          email: values.email,
-          phone: values.phone,
-          company: values.company,
-          type: values.type,
-          service: values.service,
+      // The server saves the inquiry and passes it to the studio's Google
+      // Sheet, which emails the studio inbox.
+      const res = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...values,
           selectedPackage: selectedOffer,
-          message: values.message,
-        }).catch((err: unknown) => {
-          mailError = err;
-          console.warn("Inquiry email not sent:", err);
-        });
-      if (saveError && mailError) throw saveError;
+          id: requestId.current,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok)
+        throw new Error(
+          data.error ||
+            (res.status === 429
+              ? "Too many inquiries. Please wait a few minutes."
+              : "Unable to send your inquiry. Please try again."),
+        );
       setSuccess(true);
       setFormMessage(
         `Thank you, ${values.name.split(" ")[0]}! Your inquiry has been sent. Reference: ${reference}. We’ll reply to ${values.email} soon.`,
@@ -1593,9 +1560,9 @@ export default function SitePage({
               (first name only).
             </p>
             <p>
-              When you submit either form, your details are saved for the studio
-              and emailed to the studio inbox ({contact.email}) through the
-              FormSubmit email service. An on-screen reference confirms your
+              When you submit either form, your details are saved for the studio,
+              copied to the studio’s Google Sheet and emailed to the studio inbox
+              ({contact.email}) through Google. An on-screen reference confirms your
               submission. Quote it when you contact us to request a correction
               or deletion.
             </p>
