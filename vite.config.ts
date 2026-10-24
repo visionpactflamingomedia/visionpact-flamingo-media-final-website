@@ -22,6 +22,9 @@ const managedLinux = readExecutionProfile() === "managed-linux";
 const localBindingConfig = {
   main: "vinext/server/fetch-handler",
   compatibility_flags: ["nodejs_compat"],
+  // Keep variables added in the Cloudflare dashboard (e.g. the Google Sheet
+  // settings) when a deploy runs; this config defines none of its own.
+  keep_vars: true,
   d1_databases: d1
     ? [
         {
