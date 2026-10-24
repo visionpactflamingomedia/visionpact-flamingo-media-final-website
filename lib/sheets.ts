@@ -49,7 +49,12 @@ export function sourcePage(request: Request) {
 export async function sendToSheet(record: SheetRecord) {
   const { SHEETS_WEBHOOK_URL: url, SHEETS_WEBHOOK_SECRET: secret } =
     env as unknown as SheetEnv;
-  if (!url || !secret) return;
+  if (!url || !secret) {
+    console.warn(
+      `Google Sheet sync skipped for ${record.type} ${record.data.reference}: SHEETS_WEBHOOK_URL or SHEETS_WEBHOOK_SECRET is not set on the Worker.`,
+    );
+    return;
+  }
   try {
     // Apps Script answers with a redirect to the script's output; fetch
     // follows it. Its replies are always HTTP 200, so read the body for errors.
@@ -66,10 +71,15 @@ export async function sendToSheet(record: SheetRecord) {
     const result = (await res.json().catch(() => null)) as {
       ok?: boolean;
       error?: string;
+      result?: string;
     } | null;
     if (!res.ok || !result?.ok)
       console.error(
         `Google Sheet sync failed for ${record.type} ${record.data.reference}: ${result?.error ?? `HTTP ${res.status}`}`,
+      );
+    else
+      console.log(
+        `Google Sheet sync ok for ${record.type} ${record.data.reference}: ${result.result ?? "added"}`,
       );
   } catch (error) {
     console.error(
