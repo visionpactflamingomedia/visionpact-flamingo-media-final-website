@@ -13,6 +13,15 @@ const D1_DATABASE_ID =
   process.env.D1_DATABASE_ID?.trim() || SITE_CREATOR_PLACEHOLDER_DATABASE_ID;
 const D1_DATABASE_NAME = process.env.D1_DATABASE_NAME?.trim() || "site-creator-d1";
 
+// Google Sheet settings given as build variables are passed on to the running
+// Worker. Set them either here (Build > Variables and secrets) or as Worker
+// secrets, not both: Cloudflare rejects a deploy that defines a name twice.
+const SHEET_VARS = Object.fromEntries(
+  (["SHEETS_WEBHOOK_URL", "SHEETS_WEBHOOK_SECRET"] as const)
+    .map((name) => [name, process.env[name]?.trim() ?? ""])
+    .filter(([, value]) => value),
+);
+
 const { d1, r2 } = hostingConfig;
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
@@ -25,6 +34,7 @@ const localBindingConfig = {
   // Keep variables added in the Cloudflare dashboard (e.g. the Google Sheet
   // settings) when a deploy runs; this config defines none of its own.
   keep_vars: true,
+  vars: SHEET_VARS,
   d1_databases: d1
     ? [
         {
