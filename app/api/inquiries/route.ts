@@ -11,8 +11,7 @@ const schema = z.object({
     .string()
     .trim()
     .max(20)
-    .regex(/^(\+?[0-9][0-9 -]{6,18})?$/)
-    .default(""),
+    .regex(/^\+?[0-9][0-9 -]{6,18}$/),
   company: z.string().trim().max(160).default(""),
   service: z.string().trim().min(1).max(160),
   // A package or service chosen on the Pricing page, if any.
@@ -23,7 +22,7 @@ const schema = z.object({
     "Career inquiry",
     "General inquiry",
   ]),
-  message: z.string().trim().min(20).max(3500),
+  message: z.string().trim().min(1).max(3500),
   consent: z.literal("yes"),
   website: z.string().max(0).optional(),
 });
@@ -47,7 +46,7 @@ export async function POST(request: Request) {
       return Response.json(
         {
           error:
-            "Please check your name, email, phone, service, inquiry type and message (at least 20 characters), and accept the privacy notice.",
+            "Please check your name, email, phone number, service, inquiry type and message, and accept the privacy notice.",
         },
         { status: 400 },
       );

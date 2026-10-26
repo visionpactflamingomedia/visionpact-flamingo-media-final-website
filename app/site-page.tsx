@@ -1335,10 +1335,11 @@ export default function SitePage({
               </div>
               <div className="form-row">
                 <label>
-                  Phone <span>(optional)</span>
+                  Phone
                   <input
                     name="phone"
                     type="tel"
+                    required
                     maxLength={20}
                     pattern="\+?[0-9][0-9 \-]{6,18}"
                     title="Enter a phone number using digits, spaces, + or -"
@@ -1390,7 +1391,6 @@ export default function SitePage({
                 <textarea
                   name="message"
                   required
-                  minLength={20}
                   maxLength={3500}
                   rows={4}
                   placeholder="What would you like to create? Share your goals, scope and timeline."
@@ -1557,7 +1557,7 @@ export default function SitePage({
             <Eyebrow>Website information</Eyebrow>
             <h2>Privacy notice</h2>
             <p>
-              The inquiry form collects your name, email, optional phone and
+              The inquiry form collects your name, email, phone number, optional
               company, the service you are interested in, inquiry type and
               message. These details are used only to respond to your request.
               Please do not include passwords, identity documents or other

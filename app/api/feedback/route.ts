@@ -8,7 +8,7 @@ const schema = z.object({
   email: z.union([z.string().trim().email().max(254), z.literal("")]).default(""),
   service: z.string().trim().max(160).default(""),
   rating: z.coerce.number().int().min(1).max(5),
-  message: z.string().trim().min(10).max(2000),
+  message: z.string().trim().min(1).max(2000),
   allowQuote: z.literal("yes").optional(),
   consent: z.literal("yes"),
   website: z.string().max(0).optional(),
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       return Response.json(
         {
           error:
-            "Please add your name, a rating and at least 10 characters of feedback, and accept the privacy notice.",
+            "Please add your name, a rating and your feedback, and accept the privacy notice.",
         },
         { status: 400 },
       );

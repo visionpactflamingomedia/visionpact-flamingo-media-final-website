@@ -117,7 +117,6 @@ export function FeedbackForm({ onPrivacy }: { onPrivacy: () => void }) {
         <textarea
           name="message"
           required
-          minLength={10}
           maxLength={2000}
           rows={4}
           placeholder="What went well, and what could we do better?"
