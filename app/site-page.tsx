@@ -167,7 +167,7 @@ function FeedbackPanel({
             <Check size={16} aria-hidden="true" /> Takes about a minute
           </li>
           <li>
-            <Check size={16} aria-hidden="true" /> Email is optional
+            <Check size={16} aria-hidden="true" /> A thank-you email with your reference
           </li>
           <li>
             <Check size={16} aria-hidden="true" /> Quoted only with your permission
@@ -1564,7 +1564,7 @@ export default function SitePage({
               sensitive information.
             </p>
             <p>
-              The feedback form collects your name, optional email, the service
+              The feedback form collects your name, email, the service
               you used, your rating and comments, and whether we may quote you
               (first name only).
             </p>

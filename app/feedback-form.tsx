@@ -69,13 +69,13 @@ export function FeedbackForm({ onPrivacy }: { onPrivacy: () => void }) {
           <input name="name" required minLength={2} maxLength={100} autoComplete="name" placeholder="Full name" />
         </label>
         <label>
-          Email <span>(optional)</span>
-          <input name="email" type="email" maxLength={254} autoComplete="email" placeholder="So we can reply" />
+          Email
+          <input name="email" type="email" required maxLength={254} autoComplete="email" placeholder="So we can reply" />
         </label>
       </div>
       <label>
-        Service you used <span>(optional)</span>
-        <select name="service" defaultValue="">
+        Service you used
+        <select name="service" required defaultValue="">
           <option value="">Select a service</option>
           {services.map((s) => (
             <option key={s.name}>{s.name}</option>

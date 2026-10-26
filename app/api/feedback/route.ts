@@ -5,8 +5,8 @@ import { z } from "zod";
 const schema = z.object({
   id: z.string().uuid(),
   name: z.string().trim().min(2).max(100),
-  email: z.union([z.string().trim().email().max(254), z.literal("")]).default(""),
-  service: z.string().trim().max(160).default(""),
+  email: z.string().trim().email().max(254),
+  service: z.string().trim().min(1).max(160),
   rating: z.coerce.number().int().min(1).max(5),
   message: z.string().trim().min(1).max(2000),
   allowQuote: z.literal("yes").optional(),
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       return Response.json(
         {
           error:
-            "Please add your name, a rating and your feedback, and accept the privacy notice.",
+            "Please add your name, email, the service you used, a rating and your feedback, and accept the privacy notice.",
         },
         { status: 400 },
       );
