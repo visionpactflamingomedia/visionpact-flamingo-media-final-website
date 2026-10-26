@@ -7,7 +7,9 @@
  *    and Lists. Running it again rebuilds the layout and keeps every row.
  *  - doPost() receives the website's service-request and feedback forms, adds
  *    each submission as a new row and emails it to the studio inbox (the
- *    NOTIFY_EMAIL script property, or the website's contact email).
+ *    NOTIFY_EMAIL script property, or the website's contact email). The
+ *    visitor also gets a thank-you email when they gave an address; set the
+ *    script property SEND_CONFIRMATIONS to "no" to stop those.
  *  - onEdit() copies a request to Clients when its Status is set to Confirmed,
  *    and gives new client rows an ID.
  *
@@ -20,7 +22,8 @@
  *  3. Choose "setup" in the function list at the top and press Run. Allow
  *     access when Google asks (Advanced > Go to project, if it warns). Then
  *     run "testEmail" once: it allows the script to send email and sends a
- *     test message to the studio inbox.
+ *     test message to the studio inbox. Gmail allows about 100 emails a day;
+ *     each submission uses up to two (studio copy and thank-you).
  *  4. Deploy > New deployment > Select type: Web app.
  *     Execute as: Me. Who has access: Anyone. Press Deploy, then copy the
  *     Web app URL.
@@ -37,6 +40,9 @@ const SHARED_SECRET = 'PASTE_THE_SHEETS_WEBHOOK_SECRET_HERE';
 const SECRET_PROPERTY = 'SHEETS_WEBHOOK_SECRET';
 // Optional script property: where new requests and feedback are emailed.
 const NOTIFY_PROPERTY = 'NOTIFY_EMAIL';
+// Optional script property: "no" stops the thank-you emails to visitors.
+const CONFIRM_PROPERTY = 'SEND_CONFIRMATIONS';
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const TIME_ZONE = 'Asia/Kolkata';
 const TAB = {
@@ -767,6 +773,22 @@ function addRequest_(d, receivedAt) {
     ['Message', plain_(d.message, 4000)],
     ['Page', plain_(d.page, 200)],
   ]);
+  const service = knownService_(d.service);
+  // The package is only shown when the website matched it to a published price.
+  const pack = price === '' ? '' : plain_(d.selectedPackage, 300);
+  confirm_(
+    plain_(d.email, 254),
+    'Thank you for choosing Visionpact Flamingo Media (ref. ' + reference + ')',
+    firstName_(d.name),
+    [
+      'Thank you for choosing Visionpact Flamingo Media' + (service ? ' for ' + service : '') + '.',
+      'We have received your request and will reply to this email address soon. If you would like to add anything, just reply to this email.',
+    ],
+    [
+      ['Reference', reference],
+      ['Service', service || 'To be discussed'],
+    ].concat(pack ? [['Package', pack]] : []),
+  );
   return 'added';
 }
 
@@ -801,6 +823,22 @@ function addFeedback_(d, receivedAt) {
     ['May we quote this?', d.allowQuote === true ? 'Yes, first name only' : 'No'],
     ['Page', plain_(d.page, 200)],
   ]);
+  const service = knownService_(d.service);
+  confirm_(
+    plain_(d.email, 254),
+    'Thank you for your feedback | Visionpact Flamingo Media',
+    firstName_(d.name),
+    [
+      'Thank you for taking the time to share your feedback' + (service ? ' on our ' + service + ' work' : '') + '. Every comment helps us improve.',
+      d.allowQuote === true
+        ? 'Thank you also for letting us quote you. We will only ever use your first name.'
+        : 'We will keep your feedback private.',
+    ],
+    [
+      ['Reference', reference],
+      ['Your rating', '★'.repeat(rating) + '☆'.repeat(5 - rating) + ' (' + rating + '/5)'],
+    ],
+  );
   return 'added';
 }
 
@@ -832,11 +870,68 @@ function notify_(subject, replyTo, rows) {
       body: rows.map((r) => r[0] + ': ' + r[1]).join('\n'),
       name: 'Visionpact website',
     };
-    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(replyTo)) options.replyTo = replyTo;
+    if (EMAIL_PATTERN.test(replyTo)) options.replyTo = replyTo;
     MailApp.sendEmail(options);
   } catch (err) {
     console.error('Notification email failed: ' + ((err && err.message) || err));
   }
+}
+
+// Thank-you email to the visitor, sent from the studio's Gmail. Anyone can type
+// any address into a form, so it carries only fixed wording, a first name and
+// values the website checked (reference, a listed service, a priced package),
+// never the visitor's message. Replies go to the studio inbox.
+function confirm_(to, subject, firstName, paragraphs, rows) {
+  const enabled = String(PropertiesService.getScriptProperties().getProperty(CONFIRM_PROPERTY) || 'yes');
+  if (enabled.trim().toLowerCase() === 'no' || !EMAIL_PATTERN.test(to)) return;
+  try {
+    const c = DATA.contact;
+    const font = 'font-family:Arial,sans-serif;color:#1b1715;';
+    const html =
+      '<div style="' + font + 'font-size:15px;line-height:1.55;max-width:560px">' +
+      '<p>Hi ' + html_(firstName) + ',</p>' +
+      paragraphs.map((p) => '<p>' + html_(p) + '</p>').join('') +
+      '<table cellpadding="8" style="border-collapse:collapse;font-size:14px;margin:6px 0 14px">' +
+      rows.map((r) =>
+        '<tr><td style="border:1px solid #e3d9cf;background:#fff8ef;font-weight:bold">' + html_(r[0]) +
+        '</td><td style="border:1px solid #e3d9cf">' + html_(r[1]) + '</td></tr>',
+      ).join('') +
+      '</table>' +
+      '<p>Warm regards,<br><strong>Team Visionpact Flamingo Media</strong><br>' +
+      html_(c.email) + ' | ' + c.phones.map((p) => html_(p.label)).join(' | ') + '</p>' +
+      '<p style="font-size:13px"><a href="' + html_(c.instagram) + '" style="color:#a44a0b">Instagram</a> &nbsp;|&nbsp; ' +
+      '<a href="' + html_(c.linkedin) + '" style="color:#a44a0b">LinkedIn</a></p>' +
+      '<p style="font-size:12px;color:#5f5954">You are receiving this because this email address was entered in a form on our website. If that was not you, please ignore this email.</p>' +
+      '</div>';
+    const body =
+      'Hi ' + firstName + ',\n\n' + paragraphs.join('\n\n') + '\n\n' +
+      rows.map((r) => r[0] + ': ' + r[1]).join('\n') +
+      '\n\nWarm regards,\nTeam Visionpact Flamingo Media\n' + c.email + ' | ' + c.phones.map((p) => p.label).join(' | ') +
+      '\n\nYou are receiving this because this email address was entered in a form on our website. If that was not you, please ignore this email.';
+    MailApp.sendEmail({
+      to: to,
+      subject: subject.slice(0, 200),
+      htmlBody: html,
+      body: body,
+      name: 'Visionpact Flamingo Media',
+      replyTo: notifyAddress_() || c.email,
+    });
+  } catch (err) {
+    console.error('Confirmation email failed: ' + ((err && err.message) || err));
+  }
+}
+
+// First word of the name, letters only, so the greeting cannot carry links.
+function firstName_(name) {
+  const first = plain_(name, 100).split(/\s+/)[0] || '';
+  const clean = first.replace(/[^\p{L}\p{M}'-]/gu, '').slice(0, 40);
+  return clean || 'there';
+}
+
+// A service name only when it is one the website lists.
+function knownService_(value) {
+  const s = plain_(value, 160);
+  return DATA.services.some((x) => x.name === s) ? s : '';
 }
 
 // Run once from the editor: grants the email permission and sends a test.

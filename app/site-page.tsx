@@ -1572,8 +1572,9 @@ export default function SitePage({
               When you submit either form, your details are saved for the studio,
               copied to the studio’s Google Sheet and emailed to the studio inbox
               ({contact.email}) through Google. An on-screen reference confirms your
-              submission. Quote it when you contact us to request a correction
-              or deletion.
+              submission, and if you gave an email address we send you a short
+              thank-you email with that reference from {contact.email}. Quote it
+              when you contact us to request a correction or deletion.
             </p>
             <p>
               The site does not use advertising cookies or analytics tracking.

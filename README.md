@@ -97,6 +97,7 @@ Subjective page ratings: Home 9.2/10; Services 9.2/10; Work 8.5/10; Process 9.0/
 ## Inquiry emails and contact details
 
 - Every contact-form and feedback submission is saved to the database, copied to the Google Sheet, and emailed by the sheet's Apps Script (Gmail, `MailApp`) to `visionpactflamingomedia@gmail.com`, or to the `NOTIFY_EMAIL` script property when set. The email includes every form field and the reference; Reply goes to the visitor. Emails therefore need the Google Sheet connection below; FormSubmit is no longer used.
+- The visitor also gets a thank-you email from the same Gmail when they entered an address: the reference, a listed service or priced package, and the rating for feedback, but never their own message, so the form cannot be used to send arbitrary text to someone else. Replies go to the studio inbox. Set the script property `SEND_CONFIRMATIONS` to `no` to turn these off. Gmail allows about 100 emails a day, and each submission uses up to two.
 - After pasting a new `Code.gs`, run `testEmail` once in Apps Script to allow sending email, then publish a new version of the web app (Deploy > Manage deployments > Edit > New version).
 - Contact details (email, phones, LinkedIn, Instagram) live in `contact` in `app/content.ts`. LinkedIn points to the studio's real profile (https://www.linkedin.com/in/visionpact-flamingo-media-3a99b1440/) and Instagram to https://www.instagram.com/visionpact.digital; both are listed as `sameAs` in the structured data.
 
